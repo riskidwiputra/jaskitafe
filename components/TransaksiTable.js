@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useReactTable, getCoreRowModel, getSortedRowModel, getPaginationRowModel, flexRender } from "@tanstack/react-table";
 import StatusBadge from "./StatusBadge";
+import { createReviewLink } from "@/lib/api";
 
 export default function TransaksiTable({ data, onKembalikan, onEdit, onDelete }) {
-  // Default: urut dari tanggal sewa (tanggal pengambilan) paling awal —
-  // desc:false artinya ascending, jadi data pertama yang tampil adalah
-  // transaksi paling lama/pertama dibuat.
-  const [sorting, setSorting] = useState([{ id: "tanggal_sewa", desc: false }]);
+  // Default: transaksi dengan tanggal sewa terbaru ditampilkan lebih dulu.
+  const [sorting, setSorting] = useState([{ id: "tanggal_sewa", desc: true }]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [linkBusy, setLinkBusy] = useState(null);
+  const [linkError, setLinkError] = useState("");
 
   function namaPenyewa(t) {
     return t.penyewa?.nama || t.nama_penyewa_manual || "\u2014";
@@ -58,6 +59,35 @@ export default function TransaksiTable({ data, onKembalikan, onEdit, onDelete })
           <div className="flex items-center justify-end gap-3">
             {t.status !== "selesai" && (
               <button onClick={() => onKembalikan(t.ID)} className="text-xs text-navy hover:underline">Tandai kembali</button>
+            )}
+            {t.status === "selesai" && (
+              <button
+                disabled={linkBusy === t.ID}
+                onClick={async () => {
+                  setLinkError("");
+                  setLinkBusy(t.ID);
+                  try {
+                    const { url } = await createReviewLink(t.ID);
+                    try {
+                      await navigator.clipboard.writeText(url);
+                      alert("Link ulasan disalin. Anda juga dapat membagikannya melalui WhatsApp.");
+                    } catch {
+                      window.prompt("Salin link ulasan ini:", url);
+                    }
+                    if (confirm("Buka WhatsApp untuk mengirim link ulasan?")) {
+                      const message = `Halo, terima kasih sudah menyewa di JasKita. Boleh bantu beri ulasan melalui link berikut? ${url}`;
+                      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+                    }
+                  } catch (error) {
+                    setLinkError(error.message);
+                  } finally {
+                    setLinkBusy(null);
+                  }
+                }}
+                className="text-xs text-[#2447a8] hover:underline disabled:opacity-50"
+              >
+                {linkBusy === t.ID ? "Membuat…" : "Link ulasan"}
+              </button>
             )}
             <button onClick={() => onEdit(t)} className="text-xs text-navy hover:underline">Edit</button>
             <button onClick={() => onDelete(t)} className="text-xs text-danger hover:underline">Hapus</button>
@@ -117,6 +147,8 @@ export default function TransaksiTable({ data, onKembalikan, onEdit, onDelete })
           </tbody>
         </table>
       </div>
+
+      {linkError && <p role="alert" className="px-5 py-2 text-xs text-danger">{linkError}</p>}
 
       {table.getPageCount() > 1 && (
         <div className="flex items-center justify-between px-5 py-3 border-t border-border text-sm">

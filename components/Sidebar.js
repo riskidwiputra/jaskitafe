@@ -9,6 +9,7 @@ const MENU = [
   { href: "/barang", label: "Barang", icon: "M4 4h16l-1.5 4h-13L4 4Zm0 0 1 16h14l1-16" },
   { href: "/penyewa", label: "Penyewa", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0" },
   { href: "/transaksi", label: "Transaksi", icon: "M9 5h11M9 12h11M9 19h11M4 5h.01M4 12h.01M4 19h.01" },
+  { href: "/ulasan/kelola", label: "Ulasan", icon: "M12 20h9M12 4h9M4 9h16M4 15h16M4 4h.01M4 20h.01" },
   { href: "/laporan", label: "Buku Kas", icon: "M4 6h16M4 12h16M4 18h7" },
   { href: "/denda", label: "Denda", icon: "M7 8h10M7 12h6m-9 9V5a2 2 0 0 1 2-2h9l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" },
   { href: "/pengeluaran", label: "Pengeluaran", icon: "M12 8v8m-4-4h8M4 6h16M4 6v13a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6M4 6l1.5-3h13L20 6" },
