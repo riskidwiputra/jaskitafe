@@ -1,20 +1,62 @@
-"use client";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import UlasanGallery from "@/components/UlasanGallery";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import UlasanBrand from "@/components/UlasanBrand";
-import { getReviewPhotoUrl } from "@/lib/review-photo-url";
-const API=process.env.NEXT_PUBLIC_API_URL;
-function Stars({value=0}){return <span className="text-[#2447a8] tracking-[2px]">{"★".repeat(value)}<span className="text-[#d5dbea]">{"★".repeat(5-value)}</span></span>}
-function date(v){return v?new Date(v).toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"}):""}
-export default function UlasanPage(){const [reviews,setReviews]=useState([]),[filter,setFilter]=useState(0),[active,setActive]=useState(null),[error,setError]=useState(""),[loading,setLoading]=useState(true);
- useEffect(()=>{fetch(`${API}/public/ulasan`).then(async r=>{const b=await r.json();if(!r.ok)throw Error(b.error||"Gagal memuat ulasan");setReviews(b.data||[])}).catch(e=>setError(e.message)).finally(()=>setLoading(false))},[]);
- const avg=reviews.length?reviews.reduce((s,r)=>s+r.rating,0)/reviews.length:0;const shown=useMemo(()=>reviews.filter(r=>!filter||r.rating===filter),[reviews,filter]);
- return <div className="min-h-screen bg-white text-[#141a2b]" style={{fontFamily:"var(--font-body)"}}><header className="sticky top-0 z-10 border-b border-[#e8ebf1] bg-white"><div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4"><UlasanBrand/><Link className="border-b-2 border-[#2447a8] pb-1 font-medium text-[#14285e]" href="/ulasan">Ulasan</Link></div></header>
- <main className="mx-auto max-w-6xl px-5 py-12"><section className="mx-auto mb-8 max-w-2xl text-center"><h1 className="font-display text-5xl font-semibold text-[#14285e]">Momen mereka bersama JasKita</h1><p className="mt-3 text-[#6a7183]">Foto dan cerita dari pelanggan yang sudah menyewa jas kami.</p><div className="mt-6 inline-flex items-center gap-3 rounded-full border border-[#e8ebf1] px-5 py-2"><b className="font-display text-3xl text-[#14285e]">{avg.toFixed(1).replace(".",",")}</b><Stars value={Math.round(avg)}/><span className="text-sm text-[#6a7183]">{reviews.length} ulasan</span></div></section>
- <div className="mb-8 flex flex-wrap justify-center gap-2">{[0,5,4,3,2,1].map(n=><button key={n} onClick={()=>setFilter(n)} aria-pressed={filter===n} className={`rounded-full border px-4 py-2 text-sm ${filter===n?"border-[#14285e] bg-[#14285e] text-white":"border-[#e8ebf1] bg-white hover:bg-[#eef3fc]"}`}>{n?n+" bintang":"Semua"}</button>)}</div>
- {loading&&<p className="py-12 text-center text-[#6a7183]">Memuat ulasan…</p>}{error&&<p className="py-8 text-center text-red-700">{error}. Periksa koneksi API backend.</p>}
- {!loading&&!error&&!shown.length&&<p className="py-12 text-center text-[#6a7183]">{reviews.length?"Belum ada ulasan dengan rating ini.":"Belum ada ulasan. Ulasan pelanggan akan tampil di sini setelah dikirim."}</p>}
- <div className="columns-1 gap-5 sm:columns-2 lg:columns-3">{shown.map(r=><button key={r.ID||r.id} onClick={()=>setActive(r)} className="mb-5 block w-full break-inside-avoid overflow-hidden rounded-2xl border border-[#e8ebf1] bg-white text-left transition hover:shadow-lg">{r.foto?.length>0?<div className="relative"><img className="aspect-[4/5] w-full object-cover" src={getReviewPhotoUrl(r.foto[0].url)} alt="Foto momen pelanggan"/>{r.foto.length>1&&<span className="absolute bottom-3 right-3 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#14285e]">{r.foto.length} foto</span>}</div>:<div className="flex aspect-[4/5] items-center justify-center bg-gradient-to-br from-[#eef3fc] to-[#cfdcf5]"><svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#8da6dd" strokeWidth="1.3"><path d="M9 3l3 4 3-4 5 3-2 5v10H6V11L4 6zM12 7v14"/></svg></div>}<div className="p-5"><Stars value={r.rating}/><p className="my-3 line-clamp-3 text-[15px]">{r.kritik_saran}</p><div className="flex justify-between gap-2 text-sm"><b>{r.nama_penyewa}</b><span className="text-[#6a7183]">{date(r.CreatedAt||r.created_at)}</span></div>{r.item_sewa&&<p className="mt-2 text-xs text-[#6a7183]">{r.item_sewa}</p>}</div></button>)}</div></main>
- {active&&<div role="dialog" aria-modal="true" className="fixed inset-0 z-30 flex items-center justify-center bg-[#0f193c]/60 p-4" onClick={()=>setActive(null)}><div className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-2xl bg-white" onClick={e=>e.stopPropagation()}><div className="flex justify-end p-3"><button onClick={()=>setActive(null)} aria-label="Tutup" className="rounded-full px-3 py-1 text-xl text-[#14285e]">×</button></div>{active.foto?.map(p=><img key={p.ID||p.id} src={getReviewPhotoUrl(p.url)} alt="Foto ulasan" className="max-h-[65vh] w-full object-contain"/>)}<div className="p-6"><Stars value={active.rating}/><p className="my-3">{active.kritik_saran}</p><b>{active.nama_penyewa}</b><p className="mt-1 text-sm text-[#6a7183]">{active.item_sewa}</p></div></div></div>}</div>
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const PAGE_SIZE = 9;
+
+async function getInitialReviews() {
+  if (!API_URL) {
+    return {
+      data: [],
+      pagination: { page: 1, limit: PAGE_SIZE, total: 0, has_more: false },
+      summary: { total_reviews: 0, average_rating: 0 },
+      error: "URL API belum dikonfigurasi.",
+    };
+  }
+
+  try {
+    const response = await fetch(
+      `${API_URL}/public/ulasan?page=1&limit=${PAGE_SIZE}`,
+      { cache: "no-store" },
+    );
+    const body = await response.json();
+
+    if (!response.ok) {
+      throw new Error(body.error || "Gagal memuat ulasan.");
+    }
+
+    return body;
+  } catch (error) {
+    return {
+      data: [],
+      pagination: { page: 1, limit: PAGE_SIZE, total: 0, has_more: false },
+      summary: { total_reviews: 0, average_rating: 0 },
+      error: error.message || "Gagal menghubungi server ulasan.",
+    };
+  }
+}
+
+function GalleryFallback() {
+  return <p className="py-12 text-center text-[#6a7183]">Memuat ulasan…</p>;
+}
+
+async function GalleryContent() {
+  await connection();
+  const initialData = await getInitialReviews();
+  return (
+    <UlasanGallery
+      apiUrl={API_URL || ""}
+      initialData={initialData}
+      pageSize={PAGE_SIZE}
+    />
+  );
+}
+
+export default function UlasanPage() {
+  return (
+    <Suspense fallback={<GalleryFallback />}>
+      <GalleryContent />
+    </Suspense>
+  );
 }

@@ -8,10 +8,10 @@ export default function UlasanBrand() {
         <Image
           src="/jaskita-logo.jpg"
           alt=""
-          width={420}
-          height={420}
+          width={48}
+          height={48}
+          sizes="48px"
           className="size-full object-cover"
-          priority
         />
       </span>
       <span className="font-display text-2xl font-bold tracking-tight">JasKita</span>

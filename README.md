@@ -24,12 +24,15 @@ Menggabungkan semua uang masuk dan keluar jadi satu catatan:
 - Link hanya dapat dibuat untuk transaksi selesai dan berlaku 30 hari.
 - Admin dapat melihat perbedaan link belum dipakai, sudah dipakai, atau kedaluwarsa; link yang sudah dipakai dapat diaktifkan kembali selama 30 hari.
 - Pelanggan yang membuka link aktif kembali dapat memperbarui ulasan sebelumnya. Admin juga dapat mengedit atau menghapus ulasan dari menu dashboard.
-- Foto JPG/PNG (maksimal 5 foto) otomatis diperkecil di browser hingga di bawah 1 MB per foto jika diperlukan sebelum diunggah. File asli dibatasi 20 MB; hasil unggahan divalidasi maksimal 5 MB per foto oleh backend dan disimpan di Cloudflare R2. Foto lama di folder lokal tetap dapat ditampilkan.
+- Foto JPG/PNG (maksimal 5 foto) otomatis diperkecil di browser hingga maksimal 300 KB dan 1280 px per foto sebelum diunggah. File asli dibatasi 20 MB; backend menerima maksimal 5 MB per foto dan menyimpannya di Cloudflare R2. Foto lama di folder lokal tetap dapat ditampilkan.
+- Galeri memuat 9 ulasan pertama di server dan menggunakan cache data 60 detik; tombol **Muat lebih banyak** mengambil halaman berikutnya. Foto galeri dimuat lazy dan dioptimalkan oleh Next Image.
 - Atur `NEXT_PUBLIC_API_URL` pada frontend ke URL backend API (misalnya `http://localhost:8080/api`) dan `FRONTEND_URL` pada backend ke alamat frontend yang benar.
 
 ## Deployment gratis (untuk uji coba)
 
 Backend dan panduan setup berada di repo [jaskitabe](https://github.com/riskidwiputra/jaskitabe). Deploy frontend ini di Netlify, lalu tambahkan environment variable `NEXT_PUBLIC_API_URL` dengan URL API Render lengkap beserta `/api` (contoh: `https://jaskita-api.onrender.com/api`). Sesudah Netlify memberi URL situs, masukkan URL itu ke `FRONTEND_URL` pada Render dan deploy ulang backend.
+
+Untuk pembaruan galeri, deploy backend terlebih dahulu agar endpoint pagination tersedia, kemudian deploy frontend.
 
 Kombinasi ini memakai Render Free untuk API dan TiDB Cloud Starter berprotokol MySQL untuk database; database aplikasi tidak diubah ke PostgreSQL. Layanan gratis dapat tidur atau memiliki kuota bulanan, jadi gunakan untuk uji coba dan periksa batas penyedia sebelum mengandalkannya untuk operasional usaha.
 
