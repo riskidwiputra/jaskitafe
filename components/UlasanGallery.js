@@ -25,19 +25,50 @@ function formatDate(value) {
     : "";
 }
 
-export default function UlasanGallery({ apiUrl, initialData, pageSize }) {
-  const [reviews, setReviews] = useState(initialData.data || []);
-  const [summary, setSummary] = useState(
-    initialData.summary || { total_reviews: 0, average_rating: 0 },
+function normalizeReviewsResponse(body, pageSize, rating = 0) {
+  if (!Array.isArray(body?.data)) {
+    throw new Error("Format data ulasan dari server tidak sesuai.");
+  }
+
+  const hasPagination = Boolean(body.pagination);
+  const hasSummary = Boolean(body.summary);
+  if (hasPagination && hasSummary) {
+    return {
+      data: body.data,
+      pagination: body.pagination,
+      summary: body.summary,
+    };
+  }
+
+  const allReviews = body.data;
+  const filteredReviews = rating
+    ? allReviews.filter((review) => Number(review.rating) === rating)
+    : allReviews;
+  const totalRating = allReviews.reduce(
+    (total, review) => total + Number(review.rating || 0),
+    0,
   );
-  const [pagination, setPagination] = useState(
-    initialData.pagination || {
+
+  return {
+    data: filteredReviews,
+    pagination: {
       page: 1,
       limit: pageSize,
-      total: 0,
+      total: filteredReviews.length,
       has_more: false,
     },
-  );
+    summary: {
+      total_reviews: allReviews.length,
+      average_rating: allReviews.length ? totalRating / allReviews.length : 0,
+    },
+  };
+}
+
+export default function UlasanGallery({ apiUrl, initialData, pageSize }) {
+  const initialReviews = normalizeReviewsResponse(initialData, pageSize);
+  const [reviews, setReviews] = useState(initialReviews.data);
+  const [summary, setSummary] = useState(initialReviews.summary);
+  const [pagination, setPagination] = useState(initialReviews.pagination);
   const [filter, setFilter] = useState(0);
   const [active, setActive] = useState(null);
   const [error, setError] = useState(initialData.error || "");
@@ -70,16 +101,14 @@ export default function UlasanGallery({ apiUrl, initialData, pageSize }) {
       if (!response.ok) {
         throw new Error(body.error || "Gagal memuat ulasan.");
       }
-      if (!Array.isArray(body.data) || !body.pagination || !body.summary) {
-        throw new Error("Format data ulasan dari server tidak sesuai.");
-      }
+      const result = normalizeReviewsResponse(body, pageSize, rating);
       if (currentRequest !== requestId.current) return;
 
       setReviews((current) =>
-        append ? [...current, ...body.data] : body.data,
+        append ? [...current, ...result.data] : result.data,
       );
-      setPagination(body.pagination);
-      setSummary(body.summary);
+      setPagination(result.pagination);
+      setSummary(result.summary);
     } catch (requestError) {
       if (currentRequest === requestId.current) {
         setError(requestError.message || "Gagal memuat ulasan.");
@@ -96,18 +125,9 @@ export default function UlasanGallery({ apiUrl, initialData, pageSize }) {
     setFilter(rating);
     if (rating === 0) {
       requestId.current += 1;
-      setReviews(initialData.data || []);
-      setPagination(
-        initialData.pagination || {
-          page: 1,
-          limit: pageSize,
-          total: 0,
-          has_more: false,
-        },
-      );
-      setSummary(
-        initialData.summary || { total_reviews: 0, average_rating: 0 },
-      );
+      setReviews(initialReviews.data);
+      setPagination(initialReviews.pagination);
+      setSummary(initialReviews.summary);
       setError(initialData.error || "");
       setLoading(false);
       setLoadingMore(false);
