@@ -8,6 +8,14 @@ const nextConfig = {
         pathname: "/ulasan/**",
         search: "",
       },
+      {
+        protocol: "https",
+        hostname: "**.cdninstagram.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.fbcdn.net",
+      },
     ],
   },
 };

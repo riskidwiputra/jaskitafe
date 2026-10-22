@@ -25,8 +25,14 @@ Menggabungkan semua uang masuk dan keluar jadi satu catatan:
 - Admin dapat melihat perbedaan link belum dipakai, sudah dipakai, atau kedaluwarsa; link yang sudah dipakai dapat diaktifkan kembali selama 30 hari.
 - Pelanggan yang membuka link aktif kembali dapat memperbarui ulasan sebelumnya. Admin juga dapat mengedit atau menghapus ulasan dari menu dashboard.
 - Foto JPG/PNG (maksimal 5 foto) otomatis diperkecil di browser hingga maksimal 300 KB dan 1280 px per foto sebelum diunggah. File asli dibatasi 20 MB; backend menerima maksimal 5 MB per foto dan menyimpannya di Cloudflare R2. Foto lama di folder lokal tetap dapat ditampilkan.
-- Galeri memuat 9 ulasan pertama di server dan menggunakan cache data 60 detik; tombol **Muat lebih banyak** mengambil halaman berikutnya. Foto galeri dimuat lazy dan dioptimalkan oleh Next Image.
+- Galeri memuat 9 ulasan pertama di server; tombol **Muat lebih banyak** mengambil halaman berikutnya. Frontend tidak menyimpan cache data ulasan; backend memakai Redis selama 60 detik jika `REDIS_URL` diatur. Foto galeri dimuat lazy dan dioptimalkan oleh Next Image.
 - Atur `NEXT_PUBLIC_API_URL` pada frontend ke URL backend API (misalnya `http://localhost:8080/api`) dan `FRONTEND_URL` pada backend ke alamat frontend yang benar.
+
+### Halaman utama JasKita
+- Route `/` adalah landing page publik dengan galeri media Instagram, peta lokasi Medan Johor, tautan ke galeri `/ulasan`, dan tombol WhatsApp.
+- Galeri mengambil hingga 6 postingan melalui Instagram API resmi dan menyimpan hasil fetch di cache Next.js selama 1 jam. Akses token hanya dibaca di server, jangan gunakan prefix `NEXT_PUBLIC_` dan jangan commit token.
+- Untuk feed otomatis, siapkan akun Instagram profesional dan aplikasi Meta dengan izin `instagram_business_basic`, lalu isi `INSTAGRAM_ACCESS_TOKEN` sebagai environment variable rahasia pada deployment frontend. Token jangka panjang Instagram memiliki masa berlaku dan perlu diperbarui sesuai petunjuk Meta. Tanpa token, landing page tetap berjalan dan menampilkan tautan profil Instagram.
+- Tombol WhatsApp saat ini diarahkan ke nomor JasKita Medan Johor `08216692650`. Peta mengarah ke lokasi Google Maps yang diberikan.
 
 ## Deployment gratis (untuk uji coba)
 
