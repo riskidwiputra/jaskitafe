@@ -147,12 +147,20 @@ export default function UlasanGallery({ apiUrl, initialData, pageSize }) {
       <header className="sticky top-0 z-10 border-b border-[#e8ebf1] bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <UlasanBrand />
-          <Link
-            className="border-b-2 border-[#2447a8] pb-1 font-medium text-[#14285e]"
-            href="/ulasan"
-          >
-            Ulasan
-          </Link>
+          <nav aria-label="Navigasi utama" className="flex items-center gap-5">
+            <Link
+              href="/"
+              className="font-medium text-[#6a7183] transition hover:text-[#14285e]"
+            >
+              Beranda
+            </Link>
+            <Link
+              className="border-b-2 border-[#2447a8] pb-1 font-medium text-[#14285e]"
+              href="/ulasan"
+            >
+              Ulasan
+            </Link>
+          </nav>
         </div>
       </header>
 

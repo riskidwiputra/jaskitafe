@@ -20,7 +20,7 @@ async function getInstagramPosts() {
     "fields",
     "id,caption,media_type,media_url,permalink,thumbnail_url,timestamp",
   );
-  url.searchParams.set("limit", "6");
+  url.searchParams.set("limit", "12");
 
   try {
     const response = await fetch(url, {
