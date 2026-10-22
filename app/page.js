@@ -7,7 +7,15 @@ async function getInstagramPosts() {
     return { posts: [], status: "not_configured" };
   }
 
-  const url = new URL("https://graph.instagram.com/me/media");
+  const apiVersion = process.env.INSTAGRAM_GRAPH_API_VERSION || "v22.0";
+  if (!/^v\d+\.\d+$/.test(apiVersion)) {
+    console.error("INSTAGRAM_GRAPH_API_VERSION must use the format vNN.0");
+    return { posts: [], status: "unavailable" };
+  }
+
+  const url = new URL(
+    `https://graph.instagram.com/${apiVersion}/me/media`,
+  );
   url.searchParams.set(
     "fields",
     "id,caption,media_type,media_url,permalink,thumbnail_url,timestamp",
@@ -20,7 +28,13 @@ async function getInstagramPosts() {
       next: { revalidate: 3600 },
     });
     if (!response.ok) {
-      console.error("Instagram media request failed with status:", response.status);
+      const errorBody = await response.json().catch(() => null);
+      console.error("Instagram media request failed:", {
+        status: response.status,
+        message: errorBody?.error?.message || "Meta API returned an error",
+        code: errorBody?.error?.code,
+        type: errorBody?.error?.type,
+      });
       return { posts: [], status: "unavailable" };
     }
 
@@ -42,7 +56,10 @@ async function getInstagramPosts() {
       }))
       .filter((post) => post.id && post.imageUrl && post.postUrl);
 
-    return { posts, status: "connected" };
+    return {
+      posts,
+      status: posts.length > 0 ? "connected" : "empty",
+    };
   } catch (error) {
     console.error("Instagram media request failed:", error);
     return { posts: [], status: "unavailable" };

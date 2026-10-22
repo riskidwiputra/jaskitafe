@@ -114,11 +114,15 @@ function InstagramFeed({ posts, status }) {
         <h3 className="mt-5 font-display text-2xl font-semibold text-[#1f2a44]">
           {status === "not_configured"
             ? "Hubungkan Instagram JasKita"
+            : status === "empty"
+              ? "Belum ada postingan yang bisa ditampilkan"
             : "Feed Instagram belum tersedia"}
         </h3>
         <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[#706c63]">
           {status === "not_configured"
             ? "Foto postingan terbaru akan tampil di sini setelah koneksi resmi Instagram diaktifkan."
+            : status === "empty"
+              ? "Akun Instagram sudah terhubung, tetapi belum ada postingan foto atau video yang dapat ditampilkan."
             : "Postingan Instagram tidak dapat dimuat sekarang. Kunjungi akun kami untuk melihat foto terbaru."}
         </p>
         <a

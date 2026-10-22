@@ -31,7 +31,7 @@ Menggabungkan semua uang masuk dan keluar jadi satu catatan:
 ### Halaman utama JasKita
 - Route `/` adalah landing page publik dengan galeri media Instagram, peta lokasi Medan Johor, tautan ke galeri `/ulasan`, dan tombol WhatsApp.
 - Galeri mengambil hingga 6 postingan melalui Instagram API resmi dan menyimpan hasil fetch di cache Next.js selama 1 jam. Akses token hanya dibaca di server, jangan gunakan prefix `NEXT_PUBLIC_` dan jangan commit token.
-- Untuk feed otomatis, siapkan akun Instagram profesional dan aplikasi Meta dengan izin `instagram_business_basic`, lalu isi `INSTAGRAM_ACCESS_TOKEN` sebagai environment variable rahasia pada deployment frontend. Token jangka panjang Instagram memiliki masa berlaku dan perlu diperbarui sesuai petunjuk Meta. Tanpa token, landing page tetap berjalan dan menampilkan tautan profil Instagram.
+- Untuk feed otomatis, siapkan akun Instagram profesional dan aplikasi Meta dengan izin `instagram_business_basic`, lalu isi `INSTAGRAM_ACCESS_TOKEN` sebagai environment variable rahasia pada deployment frontend. Endpoint menggunakan Graph API `v22.0` secara default; versi dapat diubah melalui `INSTAGRAM_GRAPH_API_VERSION`. Token jangka panjang Instagram memiliki masa berlaku dan perlu diperbarui sesuai petunjuk Meta. Tanpa token, landing page tetap berjalan dan menampilkan tautan profil Instagram.
 - Tombol WhatsApp saat ini diarahkan ke nomor JasKita Medan Johor `08216692650`. Peta mengarah ke lokasi Google Maps yang diberikan.
 
 ## Deployment gratis (untuk uji coba)
